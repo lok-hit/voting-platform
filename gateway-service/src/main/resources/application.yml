@@ -1,0 +1,143 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+
+  redis:
+    host: redis
+    port: 6379
+
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-Response-From, gateway
+
+      routes:
+        - id: auth-route
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, gateway
+            - RemoveResponseHeader=Server
+            - name: RequestRateLimiter
+              args:
+                keyResolver: '#ipKeyResolver'
+                # opcjonalne nadpisanie limitów per-route
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+            - name: Retry
+              args:
+                retries: 3
+                statuses: 5xx
+                methods: GET,POST
+            - name: CircuitBreaker
+              args:
+                name: authCB
+                fallbackUri: forward:/fallback/auth
+
+        - id: election-route
+          uri: lb://election-service
+          predicates:
+            - Path=/elections/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, gateway
+            - RemoveResponseHeader=Server
+            - name: RequestRateLimiter
+              args:
+                keyResolver: '#ipKeyResolver'
+            - name: Retry
+              args:
+                retries: 2
+                statuses: 5xx
+            - name: CircuitBreaker
+              args:
+                name: electionCB
+                fallbackUri: forward:/fallback/election
+
+        - id: voter-route
+          uri: lb://voter-service
+          predicates:
+            - Path=/voters/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, gateway
+            - RemoveResponseHeader=Server
+            - name: RequestRateLimiter
+              args:
+                keyResolver: '#ipKeyResolver'
+            - name: Retry
+              args:
+                retries: 2
+
+        - id: vote-route
+          uri: lb://vote-service
+          predicates:
+            - Path=/votes/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, gateway
+            - RemoveResponseHeader=Server
+            - name: RequestRateLimiter
+              args:
+                keyResolver: '#ipKeyResolver'
+            - name: Retry
+              args:
+                retries: 3
+            - name: CircuitBreaker
+              args:
+                name: voteCB
+                fallbackUri: forward:/fallback/vote
+
+        - id: infra-route
+          uri: lb://infra-service
+          predicates:
+            - Path=/infra/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, gateway
+            - RemoveResponseHeader=Server
+
+      # Global RedisRateLimiter defaults (używane, jeśli per-route nie nadpisze)
+      redis-rate-limiter:
+        replenishRate: 5
+        burstCapacity: 10
+
+# Resilience4j configuration (circuit-breaker + retry)
+resilience4j:
+  circuitbreaker:
+    instances:
+      authCB:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      electionCB:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      voteCB:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+
+  retry:
+    instances:
+      default:
+        maxAttempts: 3
+        waitDuration: 500ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
