@@ -50,12 +50,37 @@ public class Vote {
      * @param createdAt the timestamp when the vote was created
      * @throws IllegalArgumentException if any of the parameters are null
      */
+    /**
+     * Creates a new Vote instance with all fields, including the creation timestamp.
+     * Primarily used for testing and reconstituting existing votes from persistent storage.
+     *
+     * @param id the unique identifier of the vote
+     * @param electionId the ID of the election
+     * @param optionId the ID of the selected option
+     * @param voterId the ID of the voter
+     * @param createdAt the timestamp when the vote was created
+     * @throws IllegalArgumentException if any of the parameters are null
+     */
     public Vote(Long id, Long electionId, Long optionId, Long voterId, OffsetDateTime createdAt) {
         this.id = id;
         this.electionId = electionId;
         this.optionId = optionId;
         this.voterId = voterId;
         this.createdAt = createdAt;
+    }
+    
+    /**
+     * Creates a new Vote instance with all fields, including ID but without createdAt.
+     * Primarily used for testing.
+     *
+     * @param id the unique identifier of the vote
+     * @param electionId the ID of the election
+     * @param optionId the ID of the selected option
+     * @param voterId the ID of the voter
+     * @throws IllegalArgumentException if any of the parameters are null
+     */
+    public Vote(Long id, Long electionId, Long optionId, Long voterId) {
+        this(id, electionId, optionId, voterId, OffsetDateTime.now());
     }
 
     /**

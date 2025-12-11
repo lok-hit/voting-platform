@@ -1,12 +1,13 @@
 package com.lokhit.voteservice.domain.service;
 import com.lokhit.voteservice.domain.model.Vote;
-import com.lokhit.voteservice.domain.port.out.ElectionClientPort;
-import com.lokhit.voteservice.domain.port.out.VoteRepositoryPort;
-import com.lokhit.voteservice.domain.port.out.VoterClientPort;
+import com.lokhit.voteservice.domain.port.ElectionClientPort;
+import com.lokhit.voteservice.domain.port.VoteRepositoryPort;
+import com.lokhit.voteservice.domain.port.VoterClientPort;
 import com.lokhit.voteservice.exception.ConflictException;
 import com.lokhit.voteservice.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 public class VoteDomainService {
