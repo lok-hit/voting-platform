@@ -1,0 +1,91 @@
+application.yml
+Central route definitions for auth-service, election-service, voter-service, vote-service, infra-service (uris use lb://service-name).
+Per-route filters: StripPrefix, AddRequestHeader, RemoveResponseHeader.
+Per-route resilience filters: RequestRateLimiter (Redis-backed), Retry, CircuitBreaker with forward-to-fallback URIs.
+Global RedisRateLimiter defaults and Resilience4j circuit-breaker + retry configuration.
+pom.xml
+Spring Cloud Gateway, Spring Cloud LoadBalancer, reactive Redis, Spring Cloud Circuit Breaker (Resilience4j integration), Actuator, validation dependencies.
+Spring Cloud BOM is imported to provide consistent versions.
+Java beans & filters
+GatewayConfig: KeyResolver bean named ipKeyResolver (IP-based key resolver used by the Redis RequestRateLimiter).
+ForwardAuthAndTraceFilter: GlobalFilter that adds X-Request-Id and X-Forwarded-For, and logs incoming requests.
+FallbackController: simple local fallback endpoints used by CircuitBreaker fallbacks.
+Docker / deployment
+Dockerfile (multi-stage or simple) to package and run the gateway JAR.
+docker-compose.yml that brings up Redis, Postgres (optional), several simple mock downstreams (http-echo) and gateway for local testing.
+.dockerignore to keep build context small.
+Readme and instructions
+How to build JAR, run docker compose, and local dev/notes (KeyResolver bean, Redis availability, how to switch to direct http://host:port URIs if not using discovery).
+Advantages (pros)
+
+Centralized routing and cross-cutting concerns:
+Single entry point for routing to all microservices, simplifies clients.
+Centralized header enrichment and propagation (X-Request-Id, X-Forwarded-For).
+Protection and resilience:
+Rate limiting (RedisRateLimiter) prevents abuse and protects downstream.
+Retry and circuit-breaker (Resilience4j via Spring Cloud Circuit Breaker) give resiliency against transient and persistent downstream failures.
+Fallback endpoints let you return controlled responses when services are unavailable.
+Observability & operations:
+Actuator dependency is present for health/metrics.
+X-Request-Id enables correlation of requests across services.
+Dev convenience:
+docker-compose with mock services makes local testing fast.
+KeyResolver is provided (IP-based) for simple rate-limiting policy.
+Version management:
+Spring Cloud BOM imported in pom.xml avoids “unknown” version issues.
+Limitations / trade-offs (cons)
+
+Single point of failure and complexity:
+Gateway is a critical component — if it fails, system access is blocked. It requires HA (multiple instances + load balancer).
+Adds operational complexity (need to scale/monitor gateway itself).
+Redis dependency for rate limiting:
+Production rate limiter depends on Redis availability; adds extra infra and failure modes.
+For simple dev, Redis can be overkill—an in-memory limiter would be simpler for local testing.
+Service discovery expectation:
+Routes use lb:// URIs; this requires service discovery (Eureka/Consul) or you must change URIs to concrete host:port in docker-compose. Without discovery, lb:// will not resolve.
+Security gap:
+Gateway currently forwards Authorization header but does not validate tokens or enforce authentication/authorization. Downstream services must handle auth or you should add JWT validation at gateway.
+Header & filter management overhead:
+Per-route filter configuration can get verbose and duplicated across many routes (DRY issue).
+Risk of header duplication or leaking internal headers unless explicitly removed.
+Performance overhead:
+Gateway adds an extra network hop and CPU/latency overhead for all requests (filters, reactive pipeline, resilience operations).
+Limited observability/tracing:
+Basic tracing (X-Request-Id) exists, but there is no full distributed tracing (Zipkin/Jaeger) integrated.
+Simplistic fallbacks:
+FallbackController returns static 503 messages — real fallback behavior may need to be richer or service-specific.
+No tests included:
+No unit/integration tests provided for routes, filters, or resiliency behavior yet.
+Recommended next steps (practical improvements)
+
+Make gateway highly available: run multiple instances behind a load balancer; add readiness/liveness probes.
+Decide service discovery approach:
+If you want lb:// semantics in production, register services in Eureka/Consul and ensure gateway is a discovery client.
+Otherwise, change URIs to http://host:port in docker-compose for local testing.
+Improve auth/security:
+Validate JWT at gateway (or use an auth filter) and map principal to KeyResolver for per-user rate limiting.
+Rate limiting enhancements:
+For dev, provide an in-memory KeyResolver + in-memory rate limiter to avoid Redis.
+For prod, add Redis HA / clustering and monitor limiter metrics.
+Observability:
+Integrate distributed tracing (Spring Cloud Sleuth + Zipkin or OpenTelemetry).
+Export Resilience4j metrics to Prometheus and configure dashboards/alerts.
+
+
+Configuration improvements:
+Move per-route common filters into default-filters or reuse RouteLocator Java config to reduce duplication.
+Externalize thresholds (rate limits, circuit breaker values) into environment or config server for runtime tuning.
+Robust fallbacks:
+Replace generic fallback responses with meaningful alternatives (cached responses, degraded functionality, or error codes & payloads consistent with downstream APIs).
+Hardening/operational:
+Add health checks for gateway dependencies (Redis, discovery), readiness probe waits for dependencies.
+Add logging/structured logs and correlation for downstream calls.
+Commands / quick run pointers
+
+Build gateway artifact:
+mvn -pl gateway-service -am package
+Build & run using docker-compose:
+docker compose up --build
+Or run locally with Redis mocks:
+Start Redis (docker run -d -p 6379:6379 redis:7)
+mvn -pl gateway-service spring-boot:run

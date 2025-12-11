@@ -1,0 +1,43 @@
+server:
+  port: 0  # random port for tests
+
+spring:
+  application:
+    name: gateway-test
+
+  redis:
+    host: ${spring.redis.host:localhost}
+    port: ${spring.redis.port:6379}
+
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-Response-From, gateway-test
+      routes:
+        - id: auth-route
+          uri: http://localhost:${wiremock.port}
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Source, test
+            - name: RequestRateLimiter
+              args:
+                keyResolver: '#ipKeyResolver'
+                # deterministic settings: only 1 token ever available (no refill)
+                redis-rate-limiter.replenishRate: 0
+                redis-rate-limiter.burstCapacity: 1
+            - name: CircuitBreaker
+              args:
+                name: authCB
+                fallbackUri: forward:/fallback/auth
+
+# make circuit-breaker thresholds small for tests if needed:
+resilience4j:
+  circuitbreaker:
+    instances:
+      authCB:
+        slidingWindowSize: 2
+        minimumNumberOfCalls: 1
+        failureRateThreshold: 1
+        waitDurationInOpenState: 1s
