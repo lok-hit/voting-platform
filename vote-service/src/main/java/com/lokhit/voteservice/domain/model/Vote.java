@@ -41,17 +41,6 @@ public class Vote {
 
     /**
      * Creates a new Vote instance with all fields, including the creation timestamp.
-     * Primarily used for reconstituting existing votes from persistent storage.
-     *
-     * @param id the unique identifier of the vote
-     * @param electionId the ID of the election
-     * @param optionId the ID of the selected option
-     * @param voterId the ID of the voter
-     * @param createdAt the timestamp when the vote was created
-     * @throws IllegalArgumentException if any of the parameters are null
-     */
-    /**
-     * Creates a new Vote instance with all fields, including the creation timestamp.
      * Primarily used for testing and reconstituting existing votes from persistent storage.
      *
      * @param id the unique identifier of the vote

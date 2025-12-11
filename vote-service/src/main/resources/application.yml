@@ -6,9 +6,9 @@ spring:
     name: vote-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/voting
-    username: voting
-    password: password
+   url: ${DB_URL:jdbc:postgresql://localhost:5432/voting}
+   username: ${DB_USERNAME:voting}
+   password: ${DB_PASSWORD:password}
   jpa:
     hibernate:
       ddl-auto: validate
