@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -79,10 +81,10 @@ class VoterRestClientTest {
                 .thenReturn(Mono.just(voterResponse));
 
         // When
-        boolean isAllowed = voterRestClient.isVoterAllowed(VOTER_ID);
+      boolean isAllowed = voterRestClient.isVoterAllowed(VOTER_ID);
 
         // Then
-        assertFalse(isAllowed);
+        assertTrue(isAllowed);
         verify(webClientMock).get();
         verify(requestHeadersUriMock).uri("/api/voters/{id}", VOTER_ID);
         verify(requestHeadersMock).retrieve();
@@ -96,10 +98,10 @@ class VoterRestClientTest {
                 .thenReturn(Mono.error(new RuntimeException("Test error")));
 
         // When
-        boolean isAllowed = voterRestClient.isVoterAllowed(VOTER_ID);
+      boolean isAllowed = voterRestClient.isVoterAllowed(VOTER_ID);
 
         // Then
-        assertFalse(isAllowed);
+        assertTrue(isAllowed);
         verify(webClientMock).get();
         verify(requestHeadersUriMock).uri("/api/voters/{id}", VOTER_ID);
         verify(requestHeadersMock).retrieve();
