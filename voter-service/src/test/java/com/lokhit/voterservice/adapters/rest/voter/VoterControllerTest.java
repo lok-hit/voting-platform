@@ -123,7 +123,8 @@ public class VoterControllerTest {
 
     @Test
     public void getVoter_notFound_returns404() throws Exception {
-        when(queryService.get(anyString())).thenReturn(null);
+        when(queryService.get(anyString()))
+            .thenThrow(new IllegalArgumentException("Voter not found"));
 
         mockMvc.perform(get("/voters/" + VOTER_ID))
                 .andExpect(status().isNotFound());

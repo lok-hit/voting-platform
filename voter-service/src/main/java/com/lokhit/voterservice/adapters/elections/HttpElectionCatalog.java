@@ -10,7 +10,8 @@ public class HttpElectionCatalog implements ElectionCatalog {
     private final String baseUrl;
 
     public HttpElectionCatalog(RestTemplate http, String baseUrl) {
-        this.http = http; this.baseUrl = baseUrl;
+        this.http = http;
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -18,7 +19,9 @@ public class HttpElectionCatalog implements ElectionCatalog {
         try {
             var resp = http.getForEntity(baseUrl + "/elections/" + electionId.value(), String.class);
             return resp.getStatusCode().is2xxSuccessful();
-        } catch (Exception e) { return false; }
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return false;
+        }
     }
 
     @Override
@@ -26,7 +29,9 @@ public class HttpElectionCatalog implements ElectionCatalog {
         try {
             var resp = http.getForEntity(baseUrl + "/elections/" + electionId.value() + "/options/" + optionId.value(), String.class);
             return resp.getStatusCode().is2xxSuccessful();
-        } catch (Exception e) { return false; }
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return false;
+        }
     }
 }
 

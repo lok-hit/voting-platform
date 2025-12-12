@@ -45,11 +45,12 @@ public class VoterController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VoterResponse> get(@PathVariable("id") String id) {
-        var voter = queryService.get(id);
-        if (voter == null) {
+    public ResponseEntity<?> get(@PathVariable("id") String id) {
+        try {
+            var voter = queryService.get(id);
+            return ResponseEntity.ok(VoterResponse.from(voter));
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(VoterResponse.from(voter));
     }
 }
