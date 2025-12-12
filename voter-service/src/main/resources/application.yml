@@ -1,0 +1,20 @@
+spring:
+  config:
+    activate:
+      on-profile: default
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/voter}
+    username: ${DB_USERNAME:voter}
+    password: ${DB_PASSWORD:voter}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+      hibernate.format_sql: true
+      hibernate.show_sql: ${SHOW_SQL:false}
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
