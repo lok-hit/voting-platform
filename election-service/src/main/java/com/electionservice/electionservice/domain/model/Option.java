@@ -7,11 +7,25 @@ public final class Option {
     private final String name;
 
     public Option(OptionId id, String name) {
-        this.id = id;
-        this.name = name;
+        this.id = Objects.requireNonNull(id, "Option ID cannot be null");
+        this.name = validateName(name);
+    }
+
+    private static String validateName(String name) {
+        if (name == null) {
+            throw new NullPointerException("Name cannot be null");
+        }
+        if (name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty or blank");
+        }
+        return name;
     }
 
     public static Option create(String name) {
+        Objects.requireNonNull(name, "Name cannot be null");
+        if (name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty or blank");
+        }
         return new Option(OptionId.newId(), name);
     }
 
