@@ -1,8 +1,6 @@
 package com.lokhit.voterservice.application.command;
 
 import com.lokhit.voterservice.domain.model.Voter;
-import com.lokhit.voterservice.domain.model.VoterId;
-import com.lokhit.voterservice.domain.model.VoterStatus;
 import com.lokhit.voterservice.domain.port.DomainEventPublisher;
 import com.lokhit.voterservice.domain.port.VoterRepository;
 import com.lokhit.voterservice.domain.values.Email;
@@ -21,6 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class RegisterVoterCommandHandlerTest {
 

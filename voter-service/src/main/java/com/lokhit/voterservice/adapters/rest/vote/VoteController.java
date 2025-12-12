@@ -2,7 +2,6 @@ package com.lokhit.voterservice.adapters.rest.vote;
 
 import com.lokhit.voterservice.application.command.CastVoteCommandHandler;
 import com.lokhit.voterservice.application.query.VoterQueryService;
-import com.lokhit.voterservice.domain.model.Vote;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
