@@ -1,0 +1,77 @@
+
+---
+
+## 📂 `SolutionDescription.txt`
+
+```text
+# Solution Description
+
+This solution implements a voter service using Spring Boot, designed with Domain-Driven Design (DDD) and Hexagonal Architecture.
+
+## Why this design?
+
+- **DDD** ensures that business rules (e.g., one vote per election, blocked voters cannot vote) are expressed directly in the domain model.
+- **Hexagonal Architecture** separates the core domain logic from external systems (database, REST, messaging, external election service). This makes the system easier to test, maintain, and extend.
+
+## Advantages
+
+1. **Clear separation of concerns**
+   - Domain logic is independent of frameworks.
+   - Adapters handle infrastructure details.
+
+2. **Testability**
+   - Domain can be tested in isolation with in-memory repositories.
+   - Application layer orchestrates use cases with transactional boundaries.
+
+3. **Extensibility**
+   - New adapters (e.g., Kafka, gRPC) can be added without changing domain logic.
+   - Election integration can be swapped (HTTP, DB, mock).
+
+4. **Consistency**
+   - Database constraints (unique vote per election per voter) enforce rules at persistence level.
+   - Domain invariants prevent invalid states.
+
+## Disadvantages
+
+1. **Complexity**
+   - More classes and packages compared to a simple CRUD service.
+   - Requires discipline to maintain boundaries.
+
+2. **Boilerplate**
+   - DTOs, mappers, repositories add overhead.
+   - Initial setup is heavier.
+
+3. **Learning curve**
+   - Developers unfamiliar with DDD/hexagonal architecture may need time to adapt.
+
+## Possible Improvements
+
+- **Validation**
+  - Add Bean Validation annotations to DTOs for stronger input checks.
+
+- **Security**
+  - Integrate authentication/authorization (e.g., Spring Security, JWT).
+
+- **Event handling**
+  - Implement Outbox pattern for reliable domain event publishing.
+  - Integrate with Kafka or RabbitMQ for distributed event processing.
+
+- **Monitoring**
+  - Add metrics (Micrometer, Prometheus) and logging correlation IDs.
+
+- **Scalability**
+  - Introduce caching for election lookups.
+  - Optimize queries with indexes and projections.
+
+- **Testing**
+  - Add integration tests with Testcontainers for PostgreSQL.
+  - Contract tests for REST endpoints.
+
+- **CI/CD**
+  - Automate builds, tests, and deployments with GitHub Actions or GitLab CI.
+
+## Conclusion
+
+The solution balances correctness, modularity, and extensibility.
+ While it introduces some complexity, it provides a strong foundation for building a robust voter service
+ that can evolve with future requirements.
